@@ -51,7 +51,7 @@ module Middleman
       # @return [Array<Middleman::Sitemap::Resource>]
       ##
       def articles
-        @_articles.select(&options.filter || proc { |a| a }).sort_by(&:date).reverse
+        @_articles.reject(&:ignored?).select(&options.filter || proc { |a| a }).sort_by(&:date).reverse
       end
 
       ##
@@ -137,7 +137,7 @@ module Middleman
 
           if (params = extract_source_params(resource.path))
             article = convert_to_article(resource)
-            next unless publishable?(article)
+            article.ignore! unless publishable?(article)
 
             # Add extra parameters from the URL to the page metadata
             extra_data = params.except 'year', 'month', 'day', 'title', 'lang', 'locale'
@@ -157,7 +157,7 @@ module Middleman
             if (article = @app.sitemap.find_resource_by_path(article_path))
               # The article may not yet have been processed, so convert it here.
               article = convert_to_article(article)
-              next unless publishable?(article)
+              article.ignore! unless publishable?(article)
 
               # Add extra parameters from the URL to the page metadata
               extra_data = params.except 'year', 'month', 'day', 'title', 'lang', 'locale'
